@@ -12,7 +12,9 @@ from twilio.twiml.messaging_response import MessagingResponse
 load_dotenv()
 
 app = Flask(__name__)
-client = Client()
+account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+client = Client(account_sid, auth_token)
 twilio_number = os.environ.get('TWILIO_NUMBER')
 players = [
     os.environ['MY_NUMBER'],
@@ -34,6 +36,7 @@ def webhook():
     message = request.form.get('Body').lower()
 
     if message == 'play':
+        print(account_sid,auth_token,client)
         return new_game()
 
     if message == 'resign':
@@ -99,6 +102,5 @@ def render_board():
     if 'last_move' in request.args:
         last_move = chess.Move.from_uci(request.args.get('last_move'))
     png = BytesIO()
-    cairosvg.svg2png(bytestring=chess.svg.board(
-        board, lastmove=last_move, flipped=flip), write_to=png)
+    cairosvg.svg2png(bytestring=chess.svg.board(board, lastmove=last_move, flipped=True if flip == '1' else False), write_to=png)
     return png.getvalue(), 200, {'Content-Type': 'image/png'}
